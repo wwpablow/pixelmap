@@ -1,0 +1,459 @@
+/* ============ 全局样式 ============ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+:root {
+    --ui-scale: 1.5;
+}
+
+@font-face {
+    font-family: 'Iowan';
+    src: url('IowanOldStyleBT-Roman.otf') format('opentype');
+}
+
+body {
+    font-family: 'Iowan', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    overflow: hidden;
+    background: #1a1a2e;
+}
+
+/* ============ 地图样式 ============ */
+
+#map {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+}
+
+.mapboxgl-ctrl-top-right {
+    top: 20px !important;
+    right: 20px !important;
+}
+
+/* ============ 搜索框 ============ */
+#search-panel {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+#geocoder {
+    min-width: 280px;
+    max-width: 360px;
+}
+
+.mapboxgl-ctrl-geocoder {
+    min-width: 280px;
+    max-width: 360px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    border-radius: 16px;
+    overflow: hidden;
+    font-size: 13px;
+}
+
+.mapboxgl-ctrl-geocoder--input {
+    padding: 10px 12px 10px 35px;
+    font-size: 13px;
+}
+
+.mapboxgl-ctrl-geocoder--icon {
+    margin-left: 8px;
+}
+
+/* 删除搜索提示框样式 */
+/* ============ 小人选择面板 ============ */
+#character-panel {
+    position: fixed;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 120px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(250,243,221,0.95));
+    border-radius: 20px;
+    padding: 16px 12px;
+    z-index: 1000;
+    box-shadow: 
+        0 10px 40px rgba(0,0,0,0.2),
+        0 0 0 1px rgba(255,255,255,0.5) inset;
+    backdrop-filter: blur(10px);
+}
+
+.panel-header {
+    text-align: center;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 2px dashed #e8d5b7;
+}
+
+.panel-header h2 {
+    font-size: 14px;
+    color: #5d4e37;
+    margin-bottom: 4px;
+}
+
+.panel-header .hint {
+    font-size: 10px;
+    color: #9a8b7a;
+}
+
+/* ============ 小人列表 ============ */
+.character-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.character-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 8px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 12px;
+    cursor: grab;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.character-item:hover {
+    background: rgba(255,220,180,0.5);
+    border-color: #f0c078;
+    transform: scale(1.05);
+}
+
+.character-item:active {
+    cursor: grabbing;
+}
+
+.character-item.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+}
+
+.character-item img {
+    width: calc(50px * var(--ui-scale));
+    height: calc(50px * var(--ui-scale));
+    object-fit: contain;
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+.character-item span {
+    font-size: 11px;
+    color: #5d4e37;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* ============ 面板底部按钮 ============ */
+.panel-footer {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 2px dashed #e8d5b7;
+}
+
+.action-btn {
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.action-btn.danger {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.action-btn.danger:hover {
+    background: #ffcdd2;
+}
+
+.action-btn.primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.action-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+}
+
+/* ============ 拖拽覆盖层 ============ */
+#drop-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(102, 126, 234, 0.1);
+    z-index: 500;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#drop-overlay.active {
+    opacity: 1;
+}
+
+.drop-hint {
+    background: rgba(255,255,255,0.95);
+    padding: 16px 32px;
+    border-radius: 50px;
+    font-size: 18px;
+    color: #667eea;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* ============ 地图标记 ============ */
+.map-marker {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.map-marker:hover {
+    transform: scale(1.2);
+    z-index: 100 !important;
+}
+
+.map-marker img {
+    width: calc(50px * var(--ui-scale));
+    height: calc(50px * var(--ui-scale));
+    object-fit: contain;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+}
+
+/* ============ 弹窗样式 ============ */
+.mapboxgl-popup {
+    z-index: 2000;
+}
+
+.mapboxgl-popup-content {
+    background: linear-gradient(145deg, #faf3dd, #f5e6c8);
+    padding: 0;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    overflow: hidden;
+    min-width: 200px;
+}
+
+.mapboxgl-popup-close-button {
+    font-size: 24px;
+    color: #9a8b7a;
+    right: 8px;
+    top: 4px;
+    border: none;
+    outline: none;
+    background: none;
+    padding: 4px 8px;
+}
+
+.mapboxgl-popup-close-button:hover {
+    color: #5d4e37;
+}
+
+.mapboxgl-popup-tip {
+    border-top-color: #faf3dd !important;
+}
+
+.marker-popup {
+    padding: 16px;
+}
+
+.marker-popup h3 {
+    font-size: 16px;
+    color: #5d4e37;
+    margin-bottom: 10px;
+}
+
+.popup-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.friend-tag, .date-tag {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.7);
+    color: #5d4e37;
+}
+
+.marker-popup .note {
+    font-size: 13px;
+    color: #7a6b5a;
+    font-style: italic;
+    margin-bottom: 12px;
+    padding: 8px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 8px;
+    border-left: 3px solid #f0c078;
+}
+
+.marker-popup .edit-btn {
+    width: 100%;
+    padding: 8px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.marker-popup .edit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+}
+
+/* ============ 模态弹窗 ============ */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: linear-gradient(145deg, #faf3dd, #f5e6c8);
+    padding: 24px;
+    border-radius: 20px;
+    width: 320px;
+    max-width: 90vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+}
+
+.modal.active .modal-content {
+    transform: translateY(0);
+}
+
+.modal-content h3 {
+    font-size: 18px;
+    color: #5d4e37;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 12px;
+    color: #9a8b7a;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e8d5b7;
+    border-radius: 10px;
+    font-size: 14px;
+    background: rgba(255,255,255,0.8);
+    color: #5d4e37;
+    font-family: inherit;
+    transition: border-color 0.2s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.form-group input::placeholder {
+    color: #c4b5a4;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.modal-buttons .action-btn {
+    flex: 1;
+    padding: 12px;
+}
+
+/* ============ 滚动条美化 ============ */
+.character-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.character-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.character-list::-webkit-scrollbar-thumb {
+    background: #d4c4a8;
+    border-radius: 2px;
+}
+
+/* ============ 响应式 ============ */
+@media (max-width: 600px) {
+    #character-panel {
+        left: 10px;
+        width: 100px;
+        padding: 12px 8px;
+    }
+    
+    .character-item img {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .panel-header h2 {
+        font-size: 12px;
+    }
+}
+
+

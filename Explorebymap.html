@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="像素小人旅游地图 - 记录和朋友一起旅行的美好回忆">
+    <title>像素旅行地图 ✨</title>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css">
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
+    <link rel="stylesheet" href="map.css">
+</head>
+<body>
+    <!-- 小人选择面板 -->
+    <div id="character-panel">
+        <div class="panel-header">
+            <h2>🎮 我的小伙伴</h2>
+            <p class="hint">拖拽小人到地图上</p>
+        </div>
+        <div class="character-list">
+            <div class="character-item" draggable="true" data-character="ZZ" data-name="ZZ">
+                <img src="assets/ZZ.png" alt="ZZ">
+                <span>ZZ</span>
+            </div>
+            <div class="character-item" draggable="true" data-character="xp" data-name="xp">
+                <img src="assets/xp.png" alt="xp">
+                <span>xp</span>
+            </div>
+            <div class="character-item" draggable="true" data-character="lan" data-name="lan">
+                <img src="assets/lan.png" alt="lan">
+                <span>lan</span>
+            </div>
+            <div class="character-item" draggable="true" data-character="zy" data-name="zy">
+                <img src="assets/zy.png" alt="zy">
+                <span>zy</span>
+            </div>
+            <div class="character-item" draggable="true" data-character="xi" data-name="曦">
+                <img src="assets/xi.png" alt="xi">
+                <span>xi</span>
+            </div>
+             <div class="character-item" draggable="true" data-character="wwski" data-name="wwski">
+                <img src="assets/wwski.png" alt="wwski">
+                <span>ww</span>
+            </div>
+            <div class="character-item" draggable="true" data-character="cc3" data-name="cc3">
+                <img src="assets/cc3.png" alt="cc3">
+                <span>cc</span>
+            </div>
+            <div class="character-item" draggable="true" data-character="gugu2" data-name="咕咕">
+                <img src="assets/gugu2.png" alt="咕咕">
+                <span>咕咕</span>
+            </div>
+            <div class="character-item" draggable="true" data-character="ww" data-name="WW">
+                <img src="assets/ww.png" alt="WW">
+                <span>WW</span>
+            </div>
+            <div class="character-item" draggable="true" data-character="jenna" data-name="Jenna">
+                <img src="assets/wuwu.png" alt="jenna">
+                <span>Jenna</span>
+            </div>
+            <div class="character-item" draggable="true" data-character="yej" data-name="叶姐">
+                <img src="assets/yej.png" alt="叶姐">
+                <span>叶姐</span>
+            </div>
+        </div>
+        <div class="panel-footer">
+            <button id="clear-all-btn" class="action-btn danger">🗑️ 清空地图</button>
+        </div>
+    </div>
+
+    <!-- 拖拽提示覆盖层 -->
+    <div id="drop-overlay">
+        <div class="drop-hint">📍 松开放置小人</div>
+    </div>
+
+    <!-- 地点命名弹窗 -->
+    <div id="name-modal" class="modal">
+        <div class="modal-content">
+            <h3>📍 添加旅行记忆</h3>
+            <div class="form-group">
+                <label>地点名称</label>
+                <input type="text" id="location-name" placeholder="例如：不冻河🐂">
+            </div>
+            <div class="form-group">
+                <label>旅行日期</label>
+                <input type="date" id="trip-date">
+            </div>
+            <div class="form-group">
+                <label>一句话记录</label>
+                <input type="text" id="trip-note" placeholder="例如：超级冷但是很开心！">
+            </div>
+            <div class="modal-buttons">
+                <button id="cancel-btn" class="action-btn">取消</button>
+                <button id="confirm-btn" class="action-btn primary">确认添加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑/删除弹窗 -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <h3>✏️ 编辑旅行记忆</h3>
+            <div class="form-group">
+                <label>地点名称</label>
+                <input type="text" id="edit-location-name">
+            </div>
+            <div class="form-group">
+                <label>旅行日期</label>
+                <input type="date" id="edit-trip-date">
+            </div>
+            <div class="form-group">
+                <label>一句话记录</label>
+                <input type="text" id="edit-trip-note">
+            </div>
+            <div class="modal-buttons">
+                <button id="delete-marker-btn" class="action-btn danger">🗑️ 删除</button>
+                <button id="save-edit-btn" class="action-btn primary">💾 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 搜索地点 -->
+    <div id="search-panel">
+        <div id="geocoder"></div>
+        <!-- 删除搜索提示框 -->
+    </div>
+
+    <div id="map"></div>
+
+    <script>
+    // ============ 初始化 Mapbox ============
+    mapboxgl.accessToken = 'pk.eyJ1Ijoic3VtbWVycnJyciIsImEiOiJjbHA0bXJvbGswMnpuMmtwZzRrcTRqenM0In0.ZPiR8wC-kcNix7JPZ40T8Q'; 
+
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/summerrrrr/cmj9n574y003w01sr0ryw8m9e',
+        center: [116.4074, 39.9042], // 北京
+        zoom: 4
+    });
+
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    // ============ 地点搜索（Mapbox Geocoder） ============
+    const geocoder = new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        mapboxgl: mapboxgl,
+        marker: false,
+        placeholder: '搜索城市或地点，例如：日照市',
+        language: 'zh-CN',
+        limit: 5
+    });
+    geocoder.addTo('#geocoder');
+
+    geocoder.on('result', (e) => {
+        const center = e.result && e.result.center;
+        if (!center) return;
+        map.flyTo({
+            center,
+            zoom: Math.max(map.getZoom(), 9),
+            essential: true
+        });
+        // 删除搜索提示消息代码
+    });
+
+    geocoder.on('error', () => {
+        // 删除搜索提示消息代码
+    });
+
+    // ============ 数据管理 ============
+    const STORAGE_KEY = 'pixelMapMarkers';
+    let markers = []; // 存储所有标记 { id, character, name, coordinates, locationName, date, note, markerInstance }
+    let currentDragData = null;
+    let editingMarkerId = null;
+
+    // 从本地存储加载数据
+    function loadMarkers() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch (e) {
+                return [];
+            }
+        }
+        return [];
+    }
+
+    // 保存到本地存储
+    function saveMarkers() {
+        const dataToSave = markers.map(m => ({
+            id: m.id,
+            character: m.character,
+            name: m.name,
+            coordinates: m.coordinates,
+            locationName: m.locationName,
+            date: m.date,
+            note: m.note
+        }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+    }
+
+    // 生成唯一ID
+    function generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    // ============ 创建地图标记 ============
+    function createMarker(data) {
+        const el = document.createElement('div');
+        el.className = 'map-marker';
+        el.innerHTML = `<img src="assets/${data.character}.png" alt="${data.name}">`;
+        
+        // 创建弹窗内容
+        const popupContent = `
+            <div class="marker-popup">
+                <h3>${data.locationName || '未命名地点'}</h3>
+                <div class="popup-info">
+                    <span class="friend-tag">👤 ${data.name}</span>
+                    ${data.date ? `<span class="date-tag">📅 ${data.date}</span>` : ''}
+                </div>
+                ${data.note ? `<p class="note">"${data.note}"</p>` : ''}
+                <button class="edit-btn" data-id="${data.id}">✏️ 编辑</button>
+            </div>
+        `;
+
+        const popup = new mapboxgl.Popup({ offset: 25, closeButton: true })
+            .setHTML(popupContent);
+
+        const marker = new mapboxgl.Marker({
+            element: el,
+            anchor: 'bottom',
+            draggable: true
+        })
+        .setLngLat(data.coordinates)
+        .setPopup(popup)
+        .addTo(map);
+
+        // 拖拽结束后更新坐标
+        marker.on('dragend', () => {
+            const lngLat = marker.getLngLat();
+            const markerData = markers.find(m => m.id === data.id);
+            if (markerData) {
+                markerData.coordinates = [lngLat.lng, lngLat.lat];
+                saveMarkers();
+            }
+        });
+
+        // 弹窗打开时绑定编辑按钮事件
+        popup.on('open', () => {
+            setTimeout(() => {
+                const editBtn = document.querySelector(`.edit-btn[data-id="${data.id}"]`);
+                if (editBtn) {
+                    editBtn.onclick = () => openEditModal(data.id);
+                }
+            }, 10);
+        });
+
+        return marker;
+    }
+
+    // ============ 拖拽功能 ============
+    const characterItems = document.querySelectorAll('.character-item');
+    const dropOverlay = document.getElementById('drop-overlay');
+    const mapContainer = document.getElementById('map');
+
+    characterItems.forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+            currentDragData = {
+                character: item.dataset.character,
+                name: item.dataset.name
+            };
+            e.dataTransfer.setData('text/plain', JSON.stringify(currentDragData));
+            item.classList.add('dragging');
+            
+            // 创建拖拽图像
+            const dragImg = item.querySelector('img').cloneNode();
+            dragImg.style.width = '60px';
+            dragImg.style.height = '60px';
+            document.body.appendChild(dragImg);
+            e.dataTransfer.setDragImage(dragImg, 30, 60);
+            setTimeout(() => dragImg.remove(), 0);
+        });
+
+        item.addEventListener('dragend', () => {
+            item.classList.remove('dragging');
+            dropOverlay.classList.remove('active');
+            currentDragData = null;
+        });
+    });
+
+    // 地图拖拽事件
+    mapContainer.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropOverlay.classList.add('active');
+    });
+
+    mapContainer.addEventListener('dragleave', (e) => {
+        if (!mapContainer.contains(e.relatedTarget)) {
+            dropOverlay.classList.remove('active');
+        }
+    });
+
+    mapContainer.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropOverlay.classList.remove('active');
+
+        if (!currentDragData) return;
+
+        // 获取地图上的坐标
+        const rect = mapContainer.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const lngLat = map.unproject([x, y]);
+
+        // 打开命名弹窗
+        openNameModal(lngLat, currentDragData);
+    });
+
+    // ============ 弹窗控制 ============
+    const nameModal = document.getElementById('name-modal');
+    const editModal = document.getElementById('edit-modal');
+    let pendingMarkerData = null;
+
+    function openNameModal(lngLat, dragData) {
+        pendingMarkerData = {
+            id: generateId(),
+            character: dragData.character,
+            name: dragData.name,
+            coordinates: [lngLat.lng, lngLat.lat]
+        };
+        
+        document.getElementById('location-name').value = '';
+        document.getElementById('trip-date').value = '';
+        document.getElementById('trip-note').value = '';
+        nameModal.classList.add('active');
+    }
+
+    document.getElementById('confirm-btn').addEventListener('click', () => {
+        if (!pendingMarkerData) return;
+
+        pendingMarkerData.locationName = document.getElementById('location-name').value || '未命名地点';
+        pendingMarkerData.date = document.getElementById('trip-date').value;
+        pendingMarkerData.note = document.getElementById('trip-note').value;
+
+        // 创建标记
+        pendingMarkerData.markerInstance = createMarker(pendingMarkerData);
+        markers.push(pendingMarkerData);
+        saveMarkers();
+
+        nameModal.classList.remove('active');
+        pendingMarkerData = null;
+    });
+
+    document.getElementById('cancel-btn').addEventListener('click', () => {
+        nameModal.classList.remove('active');
+        pendingMarkerData = null;
+    });
+
+    // 编辑弹窗
+    function openEditModal(markerId) {
+        const markerData = markers.find(m => m.id === markerId);
+        if (!markerData) return;
+
+        editingMarkerId = markerId;
+        document.getElementById('edit-location-name').value = markerData.locationName || '';
+        document.getElementById('edit-trip-date').value = markerData.date || '';
+        document.getElementById('edit-trip-note').value = markerData.note || '';
+        
+        // 关闭popup
+        markerData.markerInstance.getPopup().remove();
+        
+        editModal.classList.add('active');
+    }
+
+    document.getElementById('save-edit-btn').addEventListener('click', () => {
+        const markerData = markers.find(m => m.id === editingMarkerId);
+        if (!markerData) return;
+
+        markerData.locationName = document.getElementById('edit-location-name').value || '未命名地点';
+        markerData.date = document.getElementById('edit-trip-date').value;
+        markerData.note = document.getElementById('edit-trip-note').value;
+
+        // 更新弹窗内容
+        const popupContent = `
+            <div class="marker-popup">
+                <h3>${markerData.locationName}</h3>
+                <div class="popup-info">
+                    <span class="friend-tag">👤 ${markerData.name}</span>
+                    ${markerData.date ? `<span class="date-tag">📅 ${markerData.date}</span>` : ''}
+                </div>
+                ${markerData.note ? `<p class="note">"${markerData.note}"</p>` : ''}
+                <button class="edit-btn" data-id="${markerData.id}">✏️ 编辑</button>
+            </div>
+        `;
+        markerData.markerInstance.getPopup().setHTML(popupContent);
+
+        saveMarkers();
+        editModal.classList.remove('active');
+        editingMarkerId = null;
+    });
+
+    document.getElementById('delete-marker-btn').addEventListener('click', () => {
+        const markerData = markers.find(m => m.id === editingMarkerId);
+        if (!markerData) return;
+
+        markerData.markerInstance.remove();
+        markers = markers.filter(m => m.id !== editingMarkerId);
+        saveMarkers();
+
+        editModal.classList.remove('active');
+        editingMarkerId = null;
+    });
+
+    // 清空所有标记
+    document.getElementById('clear-all-btn').addEventListener('click', () => {
+        if (confirm('确定要清空所有标记吗？此操作不可恢复！')) {
+            markers.forEach(m => m.markerInstance.remove());
+            markers = [];
+            saveMarkers();
+        }
+    });
+
+    // 点击弹窗外部关闭
+    [nameModal, editModal].forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+    });
+
+    // ============ 初始化加载 ============
+    map.on('load', () => {
+        const savedMarkers = loadMarkers();
+        savedMarkers.forEach(data => {
+            data.markerInstance = createMarker(data);
+            markers.push(data);
+        });
+    });
+    </script>
+</body>
+</html>
+
+
