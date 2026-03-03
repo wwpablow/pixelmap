@@ -2,6 +2,7 @@
 
 这是一个基于 Mapbox GL JS，用来记录我和朋友们去了哪里旅行的像素小人旅行地图:)
 你可以把左侧角色拖拽到地图任意位置，记录地点名称、旅行日期和一句备注，并在本地持久化保存。
+<img width="1884" height="996" alt="image" src="https://github.com/user-attachments/assets/284e31ec-d691-4d2b-aab6-f20ea6be041d" />
 
 ## 功能特点
 
@@ -11,6 +12,7 @@
 - 标记编辑、删除、整图清空
 - 标记可二次拖动调整坐标
 - 基于 `localStorage` 的本地数据持久化
+- 试用：https://wwpablow.github.io/pixelmap/
 
 ## 项目结构
 
